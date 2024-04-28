@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "wanmark-bot"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{include = "wanmark_bot"}]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+django = "^5.0.4"
+python-dotenv = "^1.0.1"
+django-grappelli = "^4.0.1"
+gunicorn = "^22.0.0"
+pytelegrambotapi = "^4.17.0"
+psycopg2-binary = "^2.9.9"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
