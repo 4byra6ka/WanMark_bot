@@ -15,8 +15,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+
+admin.site.site_header = 'WanMark'                    # default: "Django Administration"
+admin.site.index_title = 'Features area'                 # default: "Site administration"
+admin.site.site_title = 'HTML title from adminsitration' # default: "Django site admin"
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # path('grappelli/', include('grappelli.urls')),
+    path('admin/', admin.site.urls, name='admin'),
+    path('', include('users.urls', namespace='users')),
 ]

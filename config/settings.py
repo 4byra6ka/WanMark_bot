@@ -35,13 +35,16 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    # 'grappelli',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_bootstrap5',
     'bot.apps.BotConfig',
+    'users.apps.UserConfig',
 ]
 
 MIDDLEWARE = [
@@ -126,10 +129,19 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+STATICFILES_DIRS = (
+    BASE_DIR / 'static',
+)
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+AUTH_USER_MODEL = 'users.User'
 
 TOKEN_BOT = os.getenv('TOKEN_BOT')
 LOG_LEVEL = os.getenv('LOG_LEVEL')
@@ -158,10 +170,12 @@ LOGGING = {
         'handlers': ['console'],
         'level': LOG_LEVEL,
     },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'propagate': True,
-        },
-    },
+    # 'loggers': {
+    #     'django': {
+    #         'handlers': ['console'],
+    #         'propagate': True,
+    #     },
+    # },
 }
+
+# GRAPPELLI_ADMIN_TITLE = 'test'

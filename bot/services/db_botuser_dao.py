@@ -1,6 +1,5 @@
 import logging
 
-from asgiref.sync import sync_to_async
 from telebot.types import Chat, User
 
 from bot.models import BotUser
@@ -8,8 +7,7 @@ from bot.models import BotUser
 logger = logging.getLogger(__name__)
 
 
-@sync_to_async
-def update_or_create_tg_user(data: Chat | User):
+async def update_or_create_tg_user(data: Chat | User):
     try:
         data = getattr(data, 'chat')
     except AttributeError:
@@ -25,7 +23,7 @@ def update_or_create_tg_user(data: Chat | User):
         'full_name': full_name,
         'status_active': True
     }
-    telegram_user, create_status = BotUser.objects.update_or_create(telegram_id=data.id, defaults=defaults_dict)
+    telegram_user, create_status = await BotUser.objects.aupdate_or_create(telegram_id=data.id, defaults=defaults_dict)
     if create_status:
         logger.info(f'Успешно создан пользователь в БД {data.id} {username} {full_name}')
     else:

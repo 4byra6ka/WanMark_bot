@@ -12,6 +12,9 @@ class BotUser(models.Model):
     create_date = models.DateTimeField(_('Дата создания'), auto_now_add=True)
     last_change_date = models.DateTimeField(_('Дата последнего изменения'), auto_now=True)
 
+    def __str__(self):
+        return f"@{self.username}({self.telegram_id})"
+
     class Meta:
         verbose_name = 'Пользователь бота'
         verbose_name_plural = 'Пользователи бота'
