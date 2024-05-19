@@ -18,3 +18,15 @@ class BotUser(models.Model):
     class Meta:
         verbose_name = 'Пользователь бота'
         verbose_name_plural = 'Пользователи бота'
+
+
+class MenuActions(models.Model):
+    bot_user = models.OneToOneField("BotUser", on_delete=models.CASCADE, verbose_name='Пользователь бота', **NULLABLE)
+    main = models.CharField(_('Главное меню'), max_length=255, **NULLABLE)
+    sub = models.CharField(_('Подменю'), max_length=255, **NULLABLE)
+    door = models.CharField(_('Карточка двери'), max_length=255, **NULLABLE)
+    message_id = models.CharField(_('ID сообщения'), max_length=255, **NULLABLE)
+    media_message_id = models.TextField(**NULLABLE)
+
+    def __str__(self):
+        return f"main: {self.main}, sub: {self.telegram_id}, door:{self.door}"

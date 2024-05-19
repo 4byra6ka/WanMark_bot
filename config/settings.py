@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django_bootstrap5',
     'bot.apps.BotConfig',
     'users.apps.UserConfig',
+    'wanmark.apps.WanmarkConfig',
 ]
 
 MIDDLEWARE = [
@@ -142,6 +143,9 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 AUTH_USER_MODEL = 'users.User'
+LOGIN_REDIRECT_URL = '/admin/'
+LOGOUT_REDIRECT_URL = '/login/'
+LOGIN_URL = '/login/'
 
 TOKEN_BOT = os.getenv('TOKEN_BOT')
 LOG_LEVEL = os.getenv('LOG_LEVEL')
@@ -177,5 +181,7 @@ LOGGING = {
     #     },
     # },
 }
+
+CSRF_TRUSTED_ORIGINS = ['https://vpn.1jz.ru']
 
 # GRAPPELLI_ADMIN_TITLE = 'test'

@@ -3,8 +3,6 @@ from django.db import models
 
 from bot.models import BotUser
 
-NULLABLE = {'blank': True, 'null': True}
-
 
 class User(AbstractUser):
     email = None

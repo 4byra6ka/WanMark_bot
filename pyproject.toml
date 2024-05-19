@@ -16,6 +16,7 @@ pytelegrambotapi = "^4.17.0"
 psycopg2-binary = "^2.9.9"
 aiohttp = "^3.9.5"
 django-bootstrap5 = "^24.2"
+pillow = "^10.3.0"
 
 
 [build-system]
