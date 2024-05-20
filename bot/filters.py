@@ -4,9 +4,9 @@ from telebot.callback_data import CallbackData, CallbackDataFilter
 from telebot.types import CallbackQuery
 
 
-main_menu = CallbackData("m_id", prefix="main")
-sub_menu = CallbackData("s_id", prefix="sub")
-door_card = CallbackData("d_id", prefix="door")
+main_menu = CallbackData('m_id', prefix='main')
+sub_menu = CallbackData('s_id', prefix='sub')
+door_card = CallbackData('d_id', 'img', prefix='door')
 root = CallbackData(prefix='root')
 
 

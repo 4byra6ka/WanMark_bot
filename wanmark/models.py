@@ -17,6 +17,7 @@ class MainMenuBot(models.Model):
     class Meta:
         verbose_name = 'Главное меню бота'
         verbose_name_plural = 'Главные меню бота'
+        ordering = ["id"]
 
 
 class SubMenuBot(models.Model):

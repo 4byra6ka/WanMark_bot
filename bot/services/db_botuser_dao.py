@@ -3,7 +3,7 @@ import logging
 from telebot.types import Chat, User, InputMediaPhoto
 
 from bot.models import BotUser, MenuActions
-from wanmark.models import DoorCardBot, ImageTitleDoorCardBot, DescriptionMainMenuBot
+from wanmark.models import DoorCardBot, ImageTitleDoorCardBot, DescriptionMainMenuBot, ImageInstallDoorCardBot
 
 logger = logging.getLogger(__name__)
 
@@ -94,15 +94,23 @@ async def get_menu_actions(telegram_id: int):
         # return None
 
 
-async def get_image_title_door(door_card: DoorCardBot):
+async def get_image_title_door(door_card: DoorCardBot, img: bool = False) -> list:
     list_list_image = []
     list_image = []
-    async for door_card__title_image in ImageTitleDoorCardBot.objects.filter(link_door_card=door_card):
-        list_image.append(InputMediaPhoto(door_card__title_image.image.read()))
-        if len(list_image) == 10:
+    if not img:
+        async for door_card_title_image in ImageTitleDoorCardBot.objects.filter(link_door_card=door_card):
+            list_image.append(InputMediaPhoto(door_card_title_image.image.read()))
+            if len(list_image) == 10:
+                list_list_image.append(list_image)
+        else:
             list_list_image.append(list_image)
     else:
-        list_list_image.append(list_image)
+        async for door_card_install_image in ImageInstallDoorCardBot.objects.filter(link_door_card=door_card):
+            list_image.append(InputMediaPhoto(door_card_install_image.image.read()))
+            if len(list_image) == 10:
+                list_list_image.append(list_image)
+        else:
+            list_list_image.append(list_image)
     return list_list_image
 
 
