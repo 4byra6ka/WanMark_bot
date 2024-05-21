@@ -3,8 +3,9 @@ from django.shortcuts import redirect, reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
+from wanmark.forms import SettingsBotForm
 from wanmark.models import MainMenuBot, SubMenuBot, DoorCardBot, ImageTitleDoorCardBot, ImageInstallDoorCardBot, \
-    DescriptionMainMenuBot
+    SettingsBot
 
 
 class DoorCardBotInline(admin.StackedInline):
@@ -84,27 +85,34 @@ class DoorCardBotAdmin(admin.ModelAdmin):
     inlines = [ImageTitleDoorCardBotInline, ImageInstallDoorCardBotInline]
 
 
-@admin.register(DescriptionMainMenuBot)
-class DescriptionMainMenuBot(admin.ModelAdmin):
+@admin.register(SettingsBot)
+class SettingsBotAdmin(admin.ModelAdmin):
 
-    list_display = ['title', 'image', 'image_view']
-    fields = ["title", ("image", "image_view")]
+    list_display = ['main_title', 'main_image', 'image_view']
+    # fields = ["title", ("image", "image_view"), 'on_contact', ('contact_button', 'contact_title')]
+    fieldsets = [
+        ("Настройка описания главного меню", {'fields': ["main_title", ("main_image", "image_view")]}),
+        ("Настройка кнопки контакты", {'fields': ['on_contact', ('contact_button', 'contact_title')]}),
+        ("Настройка кнопки заявка", {'fields': ['on_application', ('application_button',)]}),
+        ("Настройка кнопки рассылка", {'fields': ['on_subscription', ('subscription_button',)]}),
+    ]
     readonly_fields = ['image_view']
     list_max_show_all = 1
     list_per_page = 1
+    # form = SettingsBotForm
 
     def changelist_view(self, request, extra_context=None):
         first_obj = self.model.objects.first()
         if first_obj is not None:
-            return redirect(reverse('admin:wanmark_descriptionmainmenubot_change', args=(first_obj.pk,)))
-        return redirect(reverse('admin:wanmark_descriptionmainmenubot_add'))
+            return redirect(reverse('admin:wanmark_settingsbot_change', args=(first_obj.pk,)))
+        return redirect(reverse('admin:wanmark_settingsbot_add'))
 
     def add_view(self, request, form_url='', extra_context=None):
         extra_context = extra_context or {}
         first_obj = self.model.objects.first()
         if first_obj is not None:
-            return redirect(reverse('admin:wanmark_descriptionmainmenubot_change', args=(first_obj.pk,)))
-        return super(DescriptionMainMenuBot, self).add_view(request, form_url, extra_context)
+            return redirect(reverse('admin:wanmark_settingsbot_change', args=(first_obj.pk,)))
+        return super(SettingsBot, self).add_view(request, form_url, extra_context)
 
     def has_delete_permission(self, request, obj=None):
         return False
@@ -127,7 +135,7 @@ class DescriptionMainMenuBot(admin.ModelAdmin):
     @admin.display(description='Предварительный просмотр')
     def image_view(self, obj):
         # ex. the name of column is "image"
-        if obj.image:
-            return mark_safe('<img src="{0}" width="150" height="150" style="object-fit:contain" />'.format(obj.image.url))
+        if obj.main_image:
+            return mark_safe('<img src="{0}" width="150" height="150" style="object-fit:contain" />'.format(obj.main_image.url))
         else:
             return '(No image)'

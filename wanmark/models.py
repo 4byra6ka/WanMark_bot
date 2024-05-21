@@ -101,15 +101,23 @@ def image_model_delete(sender, instance, **kwargs):
         instance.image.delete(False)
 
 
-class DescriptionMainMenuBot(models.Model):
-    title = models.TextField(verbose_name="Описание", **NULLABLE)
-    image = models.ImageField(upload_to='wanmark', verbose_name='Изображение')
+class SettingsBot(models.Model):
+    main_title = models.TextField(verbose_name="Описание", **NULLABLE)
+    main_image = models.ImageField(upload_to='wanmark', verbose_name='Изображение')
+    on_contact = models.BooleanField(verbose_name='Отображать контакты в меню', default=False)
+    contact_button = models.CharField(max_length=255, verbose_name="Название кнопки", **NULLABLE)
+    contact_title = models.TextField(verbose_name="Описание", **NULLABLE)
+    on_application = models.BooleanField(verbose_name='Отображать заявку в меню', default=False)
+    application_button = models.CharField(max_length=255, verbose_name="Название кнопки", **NULLABLE)
+    on_subscription = models.BooleanField(verbose_name='Отображать подписка на рассылку в меню', default=False)
+    subscription_button = models.CharField(max_length=255, verbose_name="Название кнопки", **NULLABLE)
+
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        if self.image:  # check if image exists before resize
-            with Image.open(self.image.path) as img:
+        if self.main_image:  # check if image exists before resize
+            with Image.open(self.main_image.path) as img:
                 img.load()
             # img = Image.open(self.report_image.path)
 
@@ -117,17 +125,17 @@ class DescriptionMainMenuBot(models.Model):
                 new_height = 720
                 new_width = int(new_height / img.height * img.width)
                 img = img.resize((new_width, new_height))
-                img.save(self.image.path)
+                img.save(self.main_image.path)
 
     def __str__(self):
-        return 'Описание главного меню'
+        return 'Настройки бота'
 
     class Meta:
-        verbose_name = 'описание главного меню'
-        verbose_name_plural = 'Описание главного меню'
+        verbose_name = 'настройки бота'
+        verbose_name_plural = 'Настройки бота'
 
 
-@receiver(pre_delete, sender=DescriptionMainMenuBot)
+@receiver(pre_delete, sender=SettingsBot)
 def image_model_delete(sender, instance, **kwargs):
-    if instance.image.name:
-        instance.image.delete(False)
+    if instance.main_image.name:
+        instance.main_image.delete(False)
