@@ -3,7 +3,6 @@ from django.shortcuts import redirect, reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
-from wanmark.forms import SettingsBotForm
 from wanmark.models import MainMenuBot, SubMenuBot, DoorCardBot, ImageTitleDoorCardBot, ImageInstallDoorCardBot, \
     SettingsBot
 

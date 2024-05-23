@@ -6,8 +6,11 @@ from bot.models import BotUser
 
 class User(AbstractUser):
     email = None
-    # username = models.CharField(unique=True, max_length=25, verbose_name='Имя пользователя')
     telegram = models.OneToOneField(BotUser, on_delete=models.SET_NULL, null=True, blank=True)
     EMAIL_FIELD = None
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = []
+
+    def __str__(self):
+        return self.username
+

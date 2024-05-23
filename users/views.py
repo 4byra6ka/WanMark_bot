@@ -1,68 +1,66 @@
-from django.shortcuts import render
-from django.views.generic import FormView
-
-from users.forms import TGPasswordResetForm
-from users.models import User
-
-
-from django.contrib import messages
-from django.contrib.auth import authenticate, login
-from django.contrib.auth.models import Permission
-from django.contrib.auth.views import LoginView
-from django.contrib.contenttypes.models import ContentType
-from django.http import HttpResponseRedirect
-from django.shortcuts import render, redirect
-from django.urls import reverse_lazy
-from django.views.generic import FormView
-
-from users.forms import UserLoginForm
-from users.models import User
-
-
-class CustomLoginView(FormView):
-    model = User
-    template_name = 'users/login.html'
-    form_class = UserLoginForm
-    extra_context = {
-        'title': 'Авторизация'
-    }
-    # success_url = redirect('main.main')
-
-    def get(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            return redirect('/admin/')
-        else:
-            return super().get(request, *args, **kwargs)
-
-    def form_valid(self, form):
-        if self.request.user.is_authenticated:
-            return redirect('/admin/')
-        if form.is_valid():
-            user = authenticate(
-                username=form.cleaned_data['username'],
-                password=form.cleaned_data['password'],
-            )
-            try:
-                user = User.objects.get(username=form.cleaned_data['username'])
-            except:
-                # messages.error(self.request, 'Неправильный пользователь или пароль')
-                messages.add_message(self.request, messages.WARNING,'Неправильный пользователь или пароль')
-            if user is not None:
-                login(self.request, user)
-                # perm_client = Permission.objects.filter(content_type=ContentType.objects.get_for_model(Client))
-                # user.user_permissions.add(perm_client.get(codename='add_client'))
-                # user.user_permissions.add(perm_client.get(codename='view_client'))
-                # user.user_permissions.add(perm_client.get(codename='change_client'))
-                # user.user_permissions.add(perm_client.get(codename='delete_client'))
-                if self.request.GET.get('next', '') != '':
-                    return HttpResponseRedirect(self.request.GET.get('next', ''))
-                return redirect('/admin/')
-                message = f'Hello {user.username}! You have been logged in'
-                return redirect('/admin/')
-            else:
-                message = 'Login failed!'
-        return render(
-            self.request, 'users/login.html', context={'form': form, 'message': message})
+# from django.shortcuts import render
+# from django.views.generic import FormView
+#
+# from users.models import User
+#
+#
+# from django.contrib import messages
+# from django.contrib.auth import authenticate, login
+# from django.contrib.auth.models import Permission
+# from django.contrib.auth.views import LoginView
+# from django.contrib.contenttypes.models import ContentType
+# from django.http import HttpResponseRedirect
+# from django.shortcuts import render, redirect
+# from django.urls import reverse_lazy
+# from django.views.generic import FormView
+#
+# from users.forms import UserLoginForm
+# from users.models import User
+#
+#
+# class CustomLoginView(FormView):
+#     model = User
+#     template_name = 'users/login.html'
+#     form_class = UserLoginForm
+#     extra_context = {
+#         'title': 'Авторизация'
+#     }
+#
+#     def get(self, request, *args, **kwargs):
+#         if request.user.is_authenticated:
+#             return redirect('/admin/')
+#         else:
+#             return super().get(request, *args, **kwargs)
+#
+#     def form_valid(self, form):
+#         if self.request.user.is_authenticated:
+#             return redirect('/admin/')
+#         if form.is_valid():
+#             user = authenticate(
+#                 username=form.cleaned_data['username'],
+#                 password=form.cleaned_data['password'],
+#             )
+#             try:
+#                 user = User.objects.get(username=form.cleaned_data['username'])
+#             except:
+#                 # messages.error(self.request, 'Неправильный пользователь или пароль')
+#                 messages.add_message(self.request, messages.WARNING,'Неправильный пользователь или пароль')
+#             if user is not None:
+#                 login(self.request, user)
+#                 # perm_client = Permission.objects.filter(content_type=ContentType.objects.get_for_model(Client))
+#                 # user.user_permissions.add(perm_client.get(codename='add_client'))
+#                 # user.user_permissions.add(perm_client.get(codename='view_client'))
+#                 # user.user_permissions.add(perm_client.get(codename='change_client'))
+#                 # user.user_permissions.add(perm_client.get(codename='delete_client'))
+#                 if self.request.GET.get('next', '') != '':
+#                     return HttpResponseRedirect(self.request.GET.get('next', ''))
+#                 return redirect('/admin/')
+#                 message = f'Hello {user.username}! You have been logged in'
+#                 return redirect('/admin/')
+#             else:
+#                 message = 'Login failed!'
+#         return render(
+#             self.request, 'users/login.html', context={'form': form, 'message': message})
 
 
 

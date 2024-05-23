@@ -3,7 +3,7 @@ import logging
 from telebot.types import Chat, User, InputMediaPhoto
 
 from bot.models import BotUser, MenuActions
-from wanmark.models import DoorCardBot, ImageTitleDoorCardBot, DescriptionMainMenuBot, ImageInstallDoorCardBot
+from wanmark.models import DoorCardBot, ImageTitleDoorCardBot, SettingsBot, ImageInstallDoorCardBot
 
 logger = logging.getLogger(__name__)
 
@@ -115,11 +115,20 @@ async def get_image_title_door(door_card: DoorCardBot, img: bool = False) -> lis
 
 
 async def get_description_main_menu():
-    first_des_main_menu: DescriptionMainMenuBot = await DescriptionMainMenuBot.objects.afirst()
+    first_des_main_menu: SettingsBot = await SettingsBot.objects.afirst()
     if first_des_main_menu is not None:
-        title = first_des_main_menu.title
-        image = first_des_main_menu.image.read()
+        title = first_des_main_menu.main_title
+        image = first_des_main_menu.main_image.read()
         return title, image
     with open('static/no-image-icon.png', 'rb') as rf:
         image = rf.read()
     return None, image
+
+
+async def get_contact() -> str:
+    first_des_contact: SettingsBot = await SettingsBot.objects.afirst()
+    if first_des_contact is not None:
+        name = first_des_contact.contact_button if first_des_contact.contact_button else '...'
+        title = first_des_contact.contact_title if first_des_contact.contact_title else '...'
+        return f'{name}\n{title}'
+    return '...'

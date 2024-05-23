@@ -2,8 +2,8 @@ from enum import IntEnum, auto
 
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from bot.filters import main_menu, sub_menu, root, door_card
-from wanmark.models import MainMenuBot, SubMenuBot, DoorCardBot
+from bot.filters import main_menu, sub_menu, root, door_card, contact, application, subscription
+from wanmark.models import MainMenuBot, SubMenuBot, DoorCardBot, SettingsBot
 
 
 async def main_menu_kb() -> InlineKeyboardMarkup:
@@ -13,6 +13,20 @@ async def main_menu_kb() -> InlineKeyboardMarkup:
         keyboard.add(InlineKeyboardButton(
             main_menu_one.name, callback_data=main_menu.new(m_id=main_menu_one.id))
         )
+    first_settings_bot: SettingsBot = await SettingsBot.objects.afirst()
+    if first_settings_bot:
+        if first_settings_bot.on_contact:
+            keyboard.add(InlineKeyboardButton(
+                first_settings_bot.contact_button, callback_data=contact.new())
+            )
+        if first_settings_bot.on_application:
+            keyboard.add(InlineKeyboardButton(
+                first_settings_bot.application_button, callback_data=application.new())
+            )
+        if first_settings_bot.on_subscription:
+            keyboard.add(InlineKeyboardButton(
+                first_settings_bot.subscription_button, callback_data=subscription.new())
+            )
     return keyboard
 
 
@@ -71,4 +85,13 @@ async def one_door_card_kb(
         keyboard.add(InlineKeyboardButton(
             'Назад', callback_data=door_card.new(d_id=door_card_id, img=False))
         )
+    return keyboard
+
+
+async def back_main_menu_kb() -> InlineKeyboardMarkup:
+    """Формирование кнопки назад в главное меню"""
+    keyboard = InlineKeyboardMarkup()
+    keyboard.add(InlineKeyboardButton(
+        'Назад', callback_data=root.new())
+    )
     return keyboard

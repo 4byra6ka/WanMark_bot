@@ -13,11 +13,11 @@ from telebot.asyncio_storage import StateMemoryStorage
 from telebot.callback_data import CallbackData, CallbackDataFilter
 from telebot.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, InputMediaPhoto
 
-from bot.filters import main_menu, root, sub_menu, door_card
-from bot.keyboards import main_menu_kb, sub_menu_kb, door_card_kb, one_door_card_kb
+from bot.filters import main_menu, root, sub_menu, door_card, contact
+from bot.keyboards import main_menu_kb, sub_menu_kb, door_card_kb, one_door_card_kb, back_main_menu_kb
 from bot.middleware import CustomMiddleware
 from bot.services.db_botuser_dao import update_or_create_menu_actions, get_menu_actions, get_image_title_door, \
-    get_description_main_menu
+    get_description_main_menu, get_contact
 from wanmark.models import MainMenuBot, SubMenuBot, DoorCardBot
 
 bot = AsyncTeleBot(settings.TOKEN_BOT, state_storage=StateMemoryStorage(), parse_mode='HTML')
@@ -237,6 +237,20 @@ async def handle_main_query(call: CallbackQuery):
         message_id=status_menu_actions['message_id'],
         caption=text,
         reply_markup=await main_menu_kb()
+    )
+    await update_or_create_menu_actions(chat_id, message_id=message_tg.message_id)
+
+
+@bot.callback_query_handler(func=None, root_config=contact.filter())
+async def handle_contact_query(call: CallbackQuery):
+    chat_id = call.message.chat.id
+    status_menu_actions = await get_menu_actions(chat_id)
+    text = await get_contact()
+    message_tg = await bot.edit_message_caption(
+        chat_id=chat_id,
+        message_id=status_menu_actions['message_id'],
+        caption=text,
+        reply_markup=await back_main_menu_kb()
     )
     await update_or_create_menu_actions(chat_id, message_id=message_tg.message_id)
 

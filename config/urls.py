@@ -1,28 +1,32 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, reverse_lazy
+from django.views.generic import RedirectView
 
-admin.site.site_header = 'WanMark'
+from users.forms import UserLoginForm
+
+admin.site.site_header = 'WanMark!'
 admin.site.index_title = 'Сайт для администрирования бота'
 admin.site.site_title = ''
+admin.AdminSite.site_url = ''
+admin.AdminSite.login_form = UserLoginForm
 
 urlpatterns = [
-                  path('admin/', admin.site.urls, name='admin'),
-                  path('', include('users.urls', namespace='users')),
-              ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    path('admin/', admin.site.urls, name='admin'),
+    path('', RedirectView.as_view(url=reverse_lazy('admin:index'))),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
 def get_app_list(self, request, app_label=None):
     """
-    Return a sorted list of all the installed apps that have been
-    registered in this site.
+    Возвращает отсортированный список всех установленных приложений, которые были зарегистрировался на этом сайте.
     """
-    # Retrieve the original list
+    # Получить исходный список.
     app_dict = self._build_app_dict(request, app_label)
     app_list = sorted(app_dict.values(), key=lambda x: x['name'].lower())
 
-    # Sort the models customably within each app.
+    # Сортируйте модели индивидуально в каждом приложении.
     for app in app_list:
         if app['app_label'] == 'wanmark':
             ordering = {
@@ -37,3 +41,4 @@ def get_app_list(self, request, app_label=None):
 
 
 admin.AdminSite.get_app_list = get_app_list
+
