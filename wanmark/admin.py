@@ -3,6 +3,7 @@ from django.shortcuts import redirect, reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
+from wanmark.forms import SettingsBotAdminForm
 from wanmark.models import MainMenuBot, SubMenuBot, DoorCardBot, ImageTitleDoorCardBot, ImageInstallDoorCardBot, \
     SettingsBot
 
@@ -86,7 +87,7 @@ class DoorCardBotAdmin(admin.ModelAdmin):
 
 @admin.register(SettingsBot)
 class SettingsBotAdmin(admin.ModelAdmin):
-
+    form = SettingsBotAdminForm
     list_display = ['main_title', 'main_image', 'image_view']
     # fields = ["title", ("image", "image_view"), 'on_contact', ('contact_button', 'contact_title')]
     fieldsets = [
