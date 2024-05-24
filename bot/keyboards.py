@@ -88,10 +88,26 @@ async def one_door_card_kb(
     return keyboard
 
 
-async def back_main_menu_kb() -> InlineKeyboardMarkup:
+async def back_main_menu_kb(
+        name_button: str = 'Назад',
+) -> InlineKeyboardMarkup:
+    keyboard: InlineKeyboardMarkup = InlineKeyboardMarkup()
     """Формирование кнопки назад в главное меню"""
-    keyboard = InlineKeyboardMarkup()
     keyboard.add(InlineKeyboardButton(
-        'Назад', callback_data=root.new())
+        name_button, callback_data=root.new())
+    )
+    return keyboard
+
+
+async def no_address_kb(
+        name_button: str = 'Пропустить ввод адреса',
+) -> InlineKeyboardMarkup:
+    keyboard: InlineKeyboardMarkup = InlineKeyboardMarkup()
+    """Формирование кнопки назад в главное меню"""
+    keyboard.add(InlineKeyboardButton(
+        name_button, callback_data='no_address')
+    )
+    keyboard.add(InlineKeyboardButton(
+        'Отмена заявки', callback_data=root.new())
     )
     return keyboard

@@ -1,4 +1,5 @@
 import logging
+from typing import Tuple, Dict
 
 from telebot.types import Chat, User, InputMediaPhoto
 
@@ -132,3 +133,20 @@ async def get_contact() -> str:
         title = first_des_contact.contact_title if first_des_contact.contact_title else '...'
         return f'{name}\n{title}'
     return '...'
+
+
+async def get_mail() -> tuple[bool, dict[str, bool | str | int]] | tuple[None, None]:
+    first_mail: SettingsBot = await SettingsBot.objects.afirst()
+    if first_mail is not None:
+        if first_mail.on_mail:
+            return (first_mail.on_mail, {
+                'hostname': first_mail.mail_hostname,
+                'port': first_mail.mail_port,
+                'username': first_mail.mail_username,
+                'password': first_mail.mail_password,
+                'use_tls': first_mail.mail_use_tls,
+                'email_to': first_mail.mail_email_to
+                }
+                    )
+        return None, None
+    return None, None

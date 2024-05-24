@@ -94,6 +94,9 @@ class SettingsBotAdmin(admin.ModelAdmin):
         ("Настройка кнопки контакты", {'fields': ['on_contact', ('contact_button', 'contact_title')]}),
         ("Настройка кнопки заявка", {'fields': ['on_application', ('application_button',)]}),
         ("Настройка кнопки рассылка", {'fields': ['on_subscription', ('subscription_button',)]}),
+        ("Настройки почтового клиента", {"classes": ["collapse"], "fields": ["on_mail", 'mail_hostname', 'mail_port',
+                                                                             'mail_username', 'mail_password',
+                                                                             'mail_use_tls', 'mail_email_to'], },),
     ]
     readonly_fields = ['image_view']
     list_max_show_all = 1

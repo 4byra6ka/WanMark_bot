@@ -111,6 +111,13 @@ class SettingsBot(models.Model):
     application_button = models.CharField(max_length=255, verbose_name="Название кнопки", **NULLABLE)
     on_subscription = models.BooleanField(verbose_name='Отображать подписка на рассылку в меню', default=False)
     subscription_button = models.CharField(max_length=255, verbose_name="Название кнопки", **NULLABLE)
+    on_mail = models.BooleanField(verbose_name='Включить рассылку', default=False)
+    mail_hostname = models.CharField(max_length=255, verbose_name="Сервер исходящей почты (SMTP-сервер)", **NULLABLE)
+    mail_port = models.PositiveIntegerField(verbose_name='Порт', default=465, **NULLABLE)
+    mail_username = models.CharField(max_length=255, verbose_name="Электронный адрес", **NULLABLE)
+    mail_password = models.CharField(max_length=255, verbose_name="Пароль", **NULLABLE)
+    mail_use_tls = models.BooleanField(verbose_name='Защита соединения TLS/SSL', default=True)
+    mail_email_to = models.CharField(max_length=255, verbose_name="Электронный адрес получателя рассылки ", **NULLABLE)
 
 
     def save(self, *args, **kwargs):

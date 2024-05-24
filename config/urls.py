@@ -6,7 +6,7 @@ from django.views.generic import RedirectView
 
 from users.forms import UserLoginForm
 
-admin.site.site_header = 'WanMark!'
+admin.site.site_header = 'WanMark'
 admin.site.index_title = 'Сайт для администрирования бота'
 admin.site.site_title = ''
 admin.AdminSite.site_url = ''
