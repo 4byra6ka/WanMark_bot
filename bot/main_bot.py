@@ -19,9 +19,15 @@ from bot.services.send_message import send_mail
 from wanmark.models import MainMenuBot, SubMenuBot, DoorCardBot
 
 bot = AsyncTeleBot(settings.TOKEN_BOT, state_storage=StateMemoryStorage(), parse_mode='HTML')
+logger = telebot.logger
 telebot.logger.setLevel(settings.LOG_LEVEL)
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
+FileOutputHandler = logging.FileHandler('bot.log', encoding='utf-8')
+server_formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+FileOutputHandler.setFormatter(server_formatter)
+# logger.addHandler(FileOutputHandler)
+telebot.logger.addHandler(FileOutputHandler)
 
 bot.setup_middleware(CustomMiddleware())
 
@@ -50,7 +56,6 @@ async def handle_main_menu_list(message: Message):
                 media_message_list.append(int(status_menu_actions['message_id']))
             if status_menu_actions['media_message_id']:
                 [media_message_list.append(int(m_id)) for m_id in status_menu_actions['media_message_id'].split(',')]
-            print(media_message_list)
             await bot.delete_messages(chat_id, media_message_list)
     except BaseException as err:
         logger.info(f'Ошибка удаления при /start {err}')
@@ -437,3 +442,10 @@ async def ready_for_answer(message: Message):
             **mail
         )
         asyncio.gather(asyncio.create_task(cormail))
+
+
+@bot.message_handler()
+async def any_del_message(message: Message):
+    chat_id = message.chat.id
+    logger.info(f'{chat_id} Удалено сообщение по событию "any_del_message"\nТекст: {message.text}')
+    await bot.delete_message(chat_id, message.id)
