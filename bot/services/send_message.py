@@ -1,10 +1,12 @@
 import logging
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+
+import telebot
 from aiosmtplib import SMTP
 import asyncio
 
-logger = logging.getLogger(__name__)
+logger = telebot.logger
 
 
 async def send_mail(subject, msg, hostname, port, username, password, use_tls, email_to):

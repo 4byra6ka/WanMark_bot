@@ -1,12 +1,13 @@
 import logging
 from typing import Tuple, Dict
 
+import telebot
 from telebot.types import Chat, User, InputMediaPhoto
 
 from bot.models import BotUser, MenuActions
 from wanmark.models import DoorCardBot, ImageTitleDoorCardBot, SettingsBot, ImageInstallDoorCardBot
 
-logger = logging.getLogger(__name__)
+logger = telebot.logger
 
 
 async def update_or_create_tg_user(data: Chat | User):
