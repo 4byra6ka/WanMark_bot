@@ -104,6 +104,7 @@ async def get_image_title_door(door_card: DoorCardBot, img: bool = False) -> lis
             list_image.append(InputMediaPhoto(door_card_title_image.image.read()))
             if len(list_image) == 10:
                 list_list_image.append(list_image)
+                list_image = []
         else:
             list_list_image.append(list_image)
     else:
@@ -111,6 +112,7 @@ async def get_image_title_door(door_card: DoorCardBot, img: bool = False) -> lis
             list_image.append(InputMediaPhoto(door_card_install_image.image.read()))
             if len(list_image) == 10:
                 list_list_image.append(list_image)
+                list_image = []
         else:
             list_list_image.append(list_image)
     return list_list_image

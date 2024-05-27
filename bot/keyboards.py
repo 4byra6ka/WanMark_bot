@@ -71,7 +71,7 @@ async def one_door_card_kb(
     keyboard = InlineKeyboardMarkup()
     if not door_img:
         keyboard.add(InlineKeyboardButton(
-            'Установленные двери', callback_data=door_card.new(d_id=door_card_id, img=True))
+            'Живые фото дверей', callback_data=door_card.new(d_id=door_card_id, img=True))
         )
         if sub_menu_id:
             keyboard.add(InlineKeyboardButton(
