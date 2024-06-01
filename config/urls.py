@@ -33,7 +33,8 @@ def get_app_list(self, request, app_label=None):
                 'SettingsBot': 1,
                 'MainMenuBot': 2,
                 'SubMenuBot': 3,
-                'DoorCardBot': 4
+                'DoorCardBot': 4,
+                'InstallDoorCardBot': 5,
             }
             app['models'].sort(key=lambda x: ordering[x['object_name']])
 
@@ -41,4 +42,3 @@ def get_app_list(self, request, app_label=None):
 
 
 admin.AdminSite.get_app_list = get_app_list
-

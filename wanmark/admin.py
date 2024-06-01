@@ -3,19 +3,14 @@ from django.shortcuts import redirect, reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
-from wanmark.forms import SettingsBotAdminForm
+from wanmark.forms import SettingsBotAdminForm, InstallDoorCardBotAdminForm
 from wanmark.models import MainMenuBot, SubMenuBot, DoorCardBot, ImageTitleDoorCardBot, ImageInstallDoorCardBot, \
-    SettingsBot
+    SettingsBot, InstallDoorCardBot
 
 
 class DoorCardBotInline(admin.StackedInline):
     model = DoorCardBot
     fields = ["name", "title"]
-
-    # optional: make the inline read-only
-    # readonly_fields = ["name", "title"]
-    # can_delete = False
-    # max_num = 0
     extra = 0
     show_change_link = True
 
@@ -23,11 +18,6 @@ class DoorCardBotInline(admin.StackedInline):
 class SubMenuBotInline(admin.TabularInline):
     model = SubMenuBot
     fields = ["name", "title"]
-
-    # optional: make the inline read-only
-    # readonly_fields = ["name", "title"]
-    # can_delete = False
-    # max_num = 0
     extra = 0
     show_change_link = True
     inlines = [DoorCardBotInline]
@@ -53,43 +43,75 @@ class ImageTitleDoorCardBotInline(admin.TabularInline):
     show_change_link = True
 
     def image_view(self, obj):
-        # ex. the name of column is "image"
         if obj.image:
             return mark_safe('<img src="{0}" width="150" height="150" style="object-fit:contain" />'.format(obj.image.url))
         else:
-            return (_('(Нет изображения)'))
+            return _('(Нет изображения)')
 
     image_view.short_description = (_('Предварительный просмотр'))
 
 
 class ImageInstallDoorCardBotInline(admin.TabularInline):
     model = ImageInstallDoorCardBot
-    fields = ["image", 'image_view']
+    fields = ['image_view']
     readonly_fields = ['image_view']
+    max_num = 0
     extra = 0
-    show_change_link = True
 
     def image_view(self, obj):
-        # ex. the name of column is "image"
         if obj.image:
-            return mark_safe('<img src="{0}" width="150" height="150" style="object-fit:contain" />'.format(obj.image.url))
+            return mark_safe(
+                '<img src="{0}" width="150" height="150" style="object-fit:contain" />'.format(obj.image.url))
         else:
             return '(No image)'
 
     image_view.short_description = (_('Предварительный просмотр'))
 
 
+class InstallDoorCardBotInline(admin.StackedInline):
+    form = InstallDoorCardBotAdminForm
+    model = InstallDoorCardBot
+    fieldsets = [
+        (None, {'fields': [("name", "title")]}),
+        (None, {'fields': ["image_view"]}),
+    ]
+    readonly_fields = ['image_view']
+    extra = 0
+    show_change_link = True
+
+    @admin.display(description='Предварительный просмотр')
+    def image_view(self, obj):
+        html = ''
+        for image_install in obj.imageinstalldoorcardbot_set.all():
+            html += '<img src="{0}" width="150" height="150" style="object-fit:contain" />'.format(image_install.image.url)
+        else:
+            if html:
+                return mark_safe(html)
+            else:
+                return _('(Нет изображения)')
+
+
+@admin.register(InstallDoorCardBot)
+class InstallDoorCardBotAdmin(admin.ModelAdmin):
+    form = InstallDoorCardBotAdminForm
+    list_display = ("name", "title")
+    inlines = [ImageInstallDoorCardBotInline]
+
+    def save_related(self, request, form, formsets, change):
+        super().save_related(request, form, formsets, change)
+        form.save_images(form.instance)
+
+
 @admin.register(DoorCardBot)
 class DoorCardBotAdmin(admin.ModelAdmin):
     list_display = ("name", "title")
-    inlines = [ImageTitleDoorCardBotInline, ImageInstallDoorCardBotInline]
+    inlines = [ImageTitleDoorCardBotInline, InstallDoorCardBotInline]
 
 
 @admin.register(SettingsBot)
 class SettingsBotAdmin(admin.ModelAdmin):
     form = SettingsBotAdminForm
     list_display = ['main_title', 'main_image', 'image_view']
-    # fields = ["title", ("image", "image_view"), 'on_contact', ('contact_button', 'contact_title')]
     fieldsets = [
         ("Настройка описания главного меню", {'fields': ["main_title", ("main_image", "image_view")]}),
         ("Настройка кнопки контакты", {'fields': ['on_contact', ('contact_button', 'contact_title')]}),
@@ -102,7 +124,6 @@ class SettingsBotAdmin(admin.ModelAdmin):
     readonly_fields = ['image_view']
     list_max_show_all = 1
     list_per_page = 1
-    # form = SettingsBotForm
 
     def changelist_view(self, request, extra_context=None):
         first_obj = self.model.objects.first()
@@ -137,8 +158,7 @@ class SettingsBotAdmin(admin.ModelAdmin):
 
     @admin.display(description='Предварительный просмотр')
     def image_view(self, obj):
-        # ex. the name of column is "image"
         if obj.main_image:
             return mark_safe('<img src="{0}" width="150" height="150" style="object-fit:contain" />'.format(obj.main_image.url))
         else:
-            return '(No image)'
+            return _('(Нет изображения)')

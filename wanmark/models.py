@@ -68,9 +68,24 @@ def image_model_delete(sender, instance, **kwargs):
         instance.image.delete(False)
 
 
+class InstallDoorCardBot(models.Model):
+    """Модель установленных дверей для карточки двери"""
+    link_door_card = models.ForeignKey("DoorCardBot", on_delete=models.CASCADE, verbose_name='Карточка двери')
+    name = models.CharField(max_length=255, verbose_name="Название кнопки")
+    title = models.TextField(verbose_name="Описание", **NULLABLE)
+
+    def __str__(self):
+        return f'Установленная дверь: {self.title}'
+
+    class Meta:
+        verbose_name = 'Установленная дверь'
+        verbose_name_plural = 'Установленные двери'
+
+
 class ImageInstallDoorCardBot(models.Model):
     """Модель изображения установленных дверей для карточки двери"""
-    link_door_card = models.ForeignKey("DoorCardBot", on_delete=models.CASCADE, verbose_name='Карточка двери')
+    link_install_door_card = models.ForeignKey("InstallDoorCardBot", on_delete=models.CASCADE, verbose_name='Установленные двери', **NULLABLE)
+    link_door_card = models.ForeignKey("DoorCardBot", on_delete=models.CASCADE, verbose_name='Карточка двери', **NULLABLE)
     image = models.ImageField(upload_to='wanmark/imageinstall', verbose_name='Изображение')
 
     def __str__(self):
@@ -79,10 +94,9 @@ class ImageInstallDoorCardBot(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        if self.image:  # check if image exists before resize
+        if self.image:
             with Image.open(self.image.path) as img:
                 img.load()
-            # img = Image.open(self.report_image.path)
 
             if img.height > 1080 or img.width > 1920:
                 new_height = 720
@@ -119,14 +133,12 @@ class SettingsBot(models.Model):
     mail_use_tls = models.BooleanField(verbose_name='Защита соединения TLS/SSL', default=True)
     mail_email_to = models.CharField(max_length=255, verbose_name="Электронный адрес получателя рассылки ", **NULLABLE)
 
-
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        if self.main_image:  # check if image exists before resize
+        if self.main_image:
             with Image.open(self.main_image.path) as img:
                 img.load()
-            # img = Image.open(self.report_image.path)
 
             if img.height > 1080 or img.width > 1920:
                 new_height = 720
