@@ -1,11 +1,8 @@
-import logging
-from typing import Tuple, Dict
-
 import telebot
 from telebot.types import Chat, User, InputMediaPhoto
 
 from bot.models import BotUser, MenuActions
-from wanmark.models import DoorCardBot, ImageTitleDoorCardBot, SettingsBot, ImageInstallDoorCardBot
+from wanmark.models import DoorCardBot, ImageTitleDoorCardBot, SettingsBot, ImageInstallDoorCardBot, InstallDoorCardBot
 
 logger = telebot.logger
 
@@ -93,13 +90,15 @@ async def get_menu_actions(telegram_id: int):
                   'message_id': menu_actions.message_id, 'media_message_id': menu_actions.media_message_id}
         logger.info(f'{bot_user.telegram_id} Успешно создан запрос состояния меню в БД {result}')
         return result
-        # return None
 
 
-async def get_image_title_door(door_card: DoorCardBot, img: bool = False) -> list:
+async def get_image_title_door(
+        door_card: DoorCardBot = None,
+        install_door_card: InstallDoorCardBot = None
+) -> list:
     list_list_image = []
     list_image = []
-    if not img:
+    if door_card:
         async for door_card_title_image in ImageTitleDoorCardBot.objects.filter(link_door_card=door_card):
             list_image.append(InputMediaPhoto(door_card_title_image.image.read()))
             if len(list_image) == 10:
@@ -107,8 +106,8 @@ async def get_image_title_door(door_card: DoorCardBot, img: bool = False) -> lis
                 list_image = []
         else:
             list_list_image.append(list_image)
-    else:
-        async for door_card_install_image in ImageInstallDoorCardBot.objects.filter(link_door_card=door_card):
+    if install_door_card:
+        async for door_card_install_image in ImageInstallDoorCardBot.objects.filter(link_install_door_card=install_door_card):
             list_image.append(InputMediaPhoto(door_card_install_image.image.read()))
             if len(list_image) == 10:
                 list_list_image.append(list_image)

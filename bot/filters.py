@@ -7,6 +7,7 @@ from telebot.types import CallbackQuery
 main_menu = CallbackData('m_id', prefix='main')
 sub_menu = CallbackData('s_id', prefix='sub')
 door_card = CallbackData('d_id', 'img', prefix='door')
+install_door_card = CallbackData('id_id', prefix='install_door')
 root = CallbackData(prefix='root')
 contact = CallbackData(prefix='contact')
 application = CallbackData(prefix='application')
@@ -29,6 +30,13 @@ class SubMenuCBFilter(AdvancedCustomFilter):
 
 class DoorCardCBFilter(AdvancedCustomFilter):
     key = 'door_card_config'
+
+    async def check(self, call: CallbackQuery, config: CallbackDataFilter):
+        return config.check(query=call)
+
+
+class InstallDoorCardCBFilter(AdvancedCustomFilter):
+    key = 'install_door_card_config'
 
     async def check(self, call: CallbackQuery, config: CallbackDataFilter):
         return config.check(query=call)
@@ -66,6 +74,7 @@ def bind_filters(bot: AsyncTeleBot):
     bot.add_custom_filter(MainMenuCBFilter())
     bot.add_custom_filter(SubMenuCBFilter())
     bot.add_custom_filter(DoorCardCBFilter())
+    bot.add_custom_filter(InstallDoorCardCBFilter())
     bot.add_custom_filter(RootCBFilter())
     bot.add_custom_filter(ContactCBFilter())
     bot.add_custom_filter(ApplicationCBFilter())

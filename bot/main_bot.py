@@ -4,29 +4,26 @@ import logging
 import telebot
 from django.conf import settings
 from telebot.async_telebot import AsyncTeleBot
-from telebot.asyncio_filters import AdvancedCustomFilter
 from telebot.asyncio_handler_backends import StatesGroup, State
 from telebot.asyncio_storage import StateMemoryStorage
-from telebot.callback_data import CallbackData, CallbackDataFilter
-from telebot.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, InputMediaPhoto
+from telebot.types import Message, CallbackQuery
 
-from bot.filters import main_menu, root, sub_menu, door_card, contact, application, subscription
-from bot.keyboards import main_menu_kb, sub_menu_kb, door_card_kb, one_door_card_kb, back_main_menu_kb, no_address_kb
+from bot.filters import main_menu, root, sub_menu, door_card, contact, application, subscription, install_door_card
+from bot.keyboards import main_menu_kb, sub_menu_kb, door_card_kb, one_door_card_kb, back_main_menu_kb, no_address_kb, \
+    install_door_card_kb, back_install_door_card_kb
 from bot.middleware import CustomMiddleware
 from bot.services.db_botuser_dao import update_or_create_menu_actions, get_menu_actions, get_image_title_door, \
     get_description_main_menu, get_contact, get_mail
 from bot.services.send_message import send_mail
-from wanmark.models import MainMenuBot, SubMenuBot, DoorCardBot
+from wanmark.models import MainMenuBot, SubMenuBot, DoorCardBot, InstallDoorCardBot
 
 bot = AsyncTeleBot(settings.TOKEN_BOT, state_storage=StateMemoryStorage(), parse_mode='HTML')
 logger = telebot.logger
 telebot.logger.setLevel(settings.LOG_LEVEL)
 
-# logger = logging.getLogger(__name__)
 FileOutputHandler = logging.FileHandler('bot.log', encoding='utf-8')
 server_formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 FileOutputHandler.setFormatter(server_formatter)
-# logger.addHandler(FileOutputHandler)
 telebot.logger.addHandler(FileOutputHandler)
 
 bot.setup_middleware(CustomMiddleware())
@@ -47,8 +44,6 @@ async def handle_main_menu_list(message: Message):
     """Команда /start на формирование главного меню"""
     chat_id = message.chat.id
     status_menu_actions = await get_menu_actions(chat_id)
-    # if not status_menu_actions:
-    #     await update_or_create_menu_actions(chat_id, main=True, sub=True, door=True, message=True, media_message=True)
     try:
         if status_menu_actions['media_message_id'] or status_menu_actions['message_id']:
             media_message_list = []
@@ -81,10 +76,8 @@ async def handle_sub_menu_list(call: CallbackQuery):
     main_menu_id: int = int(callback_data['m_id'])
 
     status_menu_actions = await get_menu_actions(chat_id)
-    if status_menu_actions['media_message_id']:  # or status_menu_actions['message_id']:
+    if status_menu_actions['media_message_id']:
         media_message_list = []
-        # if status_menu_actions['message_id']:
-        #     media_message_list.append(status_menu_actions['message_id'])
         if status_menu_actions['media_message_id']:
             [media_message_list.append(int(m_id)) for m_id in status_menu_actions['media_message_id'].split(',')]
         await bot.delete_messages(chat_id, media_message_list)
@@ -111,10 +104,8 @@ async def handle_door_menu_list(call: CallbackQuery):
     sub_menu_id: int = int(callback_data['s_id'])
 
     status_menu_actions = await get_menu_actions(chat_id)
-    if status_menu_actions['media_message_id']:  # or status_menu_actions['message_id']:
+    if status_menu_actions['media_message_id']:
         media_message_list = []
-        # if status_menu_actions['message_id']:
-        #     media_message_list.append(status_menu_actions['message_id'])
         if status_menu_actions['media_message_id']:
             [media_message_list.append(int(m_id)) for m_id in status_menu_actions['media_message_id'].split(',')]
         await bot.delete_messages(chat_id, media_message_list)
@@ -134,6 +125,33 @@ async def handle_door_menu_list(call: CallbackQuery):
     await update_or_create_menu_actions(call.message.chat.id, sub_id=sub_menu_id, message_id=message_tg.message_id)
 
 
+@bot.callback_query_handler(func=None, door_card_config=door_card.filter(img='True'))
+async def handle_install_door_menu(call: CallbackQuery):
+    """Команда на формирование списка установленных дверей"""
+    chat_id = call.message.chat.id
+    callback_data: dict = door_card.parse(callback_data=call.data)
+    door_card_id: int = int(callback_data['d_id'])
+
+    status_menu_actions = await get_menu_actions(chat_id)
+    if status_menu_actions['media_message_id']:
+        media_message_list = []
+        if status_menu_actions['media_message_id']:
+            [media_message_list.append(int(m_id)) for m_id in status_menu_actions['media_message_id'].split(',')]
+        await bot.delete_messages(chat_id, media_message_list)
+    await update_or_create_menu_actions(chat_id, media_message=True)
+
+    door_card_data: DoorCardBot = await DoorCardBot.objects.aget(id=door_card_id)
+    text = f'Живые фото дверей <b>{door_card_data.name}</b>'
+    message_tg = await bot.edit_message_caption(
+        chat_id=call.message.chat.id,
+        message_id=status_menu_actions['message_id'],
+        caption=text,
+        reply_markup=await install_door_card_kb(door_card_id=door_card_data.id)
+    )
+    await update_or_create_menu_actions(call.message.chat.id, message_id=message_tg.message_id)
+    pass
+
+
 @bot.callback_query_handler(func=None, door_card_config=door_card.filter())
 async def handle_door_menu(call: CallbackQuery):
     """Команда на формирование одной карточки двери """
@@ -149,8 +167,6 @@ async def handle_door_menu(call: CallbackQuery):
         [media_message_list.append(int(m_id)) for m_id in status_menu_actions['media_message_id'].split(',')]
         await bot.delete_messages(call.message.chat.id, media_message_list)
         await update_or_create_menu_actions(call.message.chat.id, media_message=True)
-    # else:
-    #     await bot.delete_message(call.message.chat.id, call.message.id)
 
     door_card_data: DoorCardBot = await DoorCardBot.objects.aget(id=door_card_id)
     text = f'<b>{door_card_data.name}</b>'
@@ -159,13 +175,12 @@ async def handle_door_menu(call: CallbackQuery):
             chat_id=chat_id,
             message_id=status_menu_actions['message_id'],
             caption=text,
-            # reply_markup=await one_door_card_kb(sub_menu_id=int(status_menu_actions['sub']), door_card_id=door_card_id)
         )).message_id
     else:
         message_tg = status_menu_actions['message_id']
 
     try:
-        list_list_image = await get_image_title_door(door_card_data, door_img_install)
+        list_list_image = await get_image_title_door(door_card=door_card_data)
         for list_image in list_list_image:
             if len(list_image) > 1 and len(list_image) == 10 and len(list_list_image) > 1:
                 media_group = await bot.send_media_group(call.message.chat.id, list_image)
@@ -222,16 +237,69 @@ async def handle_door_menu(call: CallbackQuery):
         media_message_id=media_messages)
 
 
+@bot.callback_query_handler(func=None, install_door_card_config=install_door_card.filter())
+async def handle_image_install_door_menu(call: CallbackQuery):
+    """Callback для установленных дверей"""
+    media_messages = []
+    chat_id = call.message.chat.id
+    callback_data: dict = install_door_card.parse(callback_data=call.data)
+    instsll_door_card_id: int = int(callback_data['id_id'])
+    status_menu_actions = await get_menu_actions(chat_id)
+    if status_menu_actions['media_message_id']:
+        media_message_list = [call.message.id]
+        [media_message_list.append(int(m_id)) for m_id in status_menu_actions['media_message_id'].split(',')]
+        await bot.delete_messages(call.message.chat.id, media_message_list)
+        await update_or_create_menu_actions(call.message.chat.id, media_message=True)
+
+    install_door_card_data: InstallDoorCardBot = await InstallDoorCardBot.objects.aget(id=instsll_door_card_id)
+    text = f'Живые фото дверей <b>{install_door_card_data.name}</b>'
+    message_tg = (await bot.edit_message_caption(
+        chat_id=chat_id,
+        message_id=status_menu_actions['message_id'],
+        caption=text,
+    )).message_id
+
+    list_list_image = await get_image_title_door(install_door_card=install_door_card_data)
+    for list_image in list_list_image:
+        if len(list_image) > 1 and len(list_image) == 10 and len(list_list_image) > 1:
+            media_group = await bot.send_media_group(call.message.chat.id, list_image)
+            media_messages += [str(media_message1.message_id) for media_message1 in media_group]
+        elif len(list_image) > 1 and len(list_image) == 10 and len(list_list_image) == 1:
+            media_group = await bot.send_media_group(call.message.chat.id, list_image)
+            media_messages += [str(media_message1.message_id) for media_message1 in media_group]
+        elif len(list_image) > 1:
+            media_group = await bot.send_media_group(call.message.chat.id, list_image)
+            media_messages += [str(media_message1.message_id) for media_message1 in media_group]
+        elif len(list_image) == 1:
+            media_group = await bot.send_photo(call.message.chat.id, list_image[0].media)
+            media_messages.append(str(media_group.message_id))
+
+    if install_door_card_data.title:
+        text_title = f'{install_door_card_data.title}'
+    else:
+        text_title = f'{install_door_card_data.name}'
+    message_sub_tg = await bot.send_message(
+        chat_id=chat_id,
+        text=text_title,
+        reply_markup=await back_install_door_card_kb(door_card_id=status_menu_actions['door'])
+    )
+    media_messages.append(message_sub_tg.id)
+    media_messages = ','.join([str(media_id) for media_id in media_messages])
+    await update_or_create_menu_actions(
+        call.message.chat.id,
+        message_id=message_tg,
+        media_message_id=media_messages)
+
+
 @bot.callback_query_handler(func=None, root_config=root.filter())
 async def handle_main_query(call: CallbackQuery):
+    """Главное меню через Callback"""
     # Рефакторинг обновления
     chat_id = call.message.chat.id
     await bot.delete_state(chat_id)
     status_menu_actions = await get_menu_actions(chat_id)
-    if status_menu_actions['media_message_id']:  # or status_menu_actions['message_id']:
+    if status_menu_actions['media_message_id']:
         media_message_list = []
-        # if status_menu_actions['message_id']:
-        #     media_message_list.append(status_menu_actions['message_id'])
         if status_menu_actions['media_message_id']:
             [media_message_list.append(int(m_id)) for m_id in status_menu_actions['media_message_id'].split(',')]
         await bot.delete_messages(chat_id, media_message_list)
@@ -249,6 +317,7 @@ async def handle_main_query(call: CallbackQuery):
 
 @bot.callback_query_handler(func=None, root_config=contact.filter())
 async def handle_contact_query(call: CallbackQuery):
+    """Callback меню контакты"""
     chat_id = call.message.chat.id
     status_menu_actions = await get_menu_actions(chat_id)
     text = await get_contact()
@@ -302,7 +371,6 @@ async def name_get(message):
     """
     State 2. Будет обрабатываться, когда состояние пользователя — ApplicationActions.name.
     """
-    user_id = message.from_user.id
     chat_id = message.chat.id
     status_menu_actions = await get_menu_actions(chat_id)
     await bot.set_state(chat_id, ApplicationStates.address)
@@ -446,6 +514,7 @@ async def ready_for_answer(message: Message):
 
 @bot.message_handler()
 async def any_del_message(message: Message):
+    """Удаление всех сообщений с текстом"""
     chat_id = message.chat.id
     logger.info(f'{chat_id} Удалено сообщение по событию "any_del_message"\nТекст: {message.text}')
     await bot.delete_message(chat_id, message.id)

@@ -1,9 +1,7 @@
-from enum import IntEnum, auto
-
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from bot.filters import main_menu, sub_menu, root, door_card, contact, application, subscription
-from wanmark.models import MainMenuBot, SubMenuBot, DoorCardBot, SettingsBot
+from bot.filters import main_menu, sub_menu, root, door_card, contact, application, subscription, install_door_card
+from wanmark.models import MainMenuBot, SubMenuBot, DoorCardBot, SettingsBot, InstallDoorCardBot
 
 
 async def main_menu_kb() -> InlineKeyboardMarkup:
@@ -61,6 +59,20 @@ async def door_card_kb(main_menu_id: int = None, sub_menu_id: int = None) -> Inl
     return keyboard
 
 
+async def install_door_card_kb(door_card_id: int = None) -> InlineKeyboardMarkup:
+    """Формирование кнопок для списка установленных дверей"""
+    keyboard = InlineKeyboardMarkup()
+    if door_card_id:
+        async for install_door_card_menu_one in InstallDoorCardBot.objects.filter(link_door_card=door_card_id):
+            keyboard.add(InlineKeyboardButton(
+                install_door_card_menu_one.name, callback_data=install_door_card.new(id_id=install_door_card_menu_one.id))
+            )
+        keyboard.add(InlineKeyboardButton(
+            'Назад', callback_data=door_card.new(d_id=door_card_id, img=False))
+        )
+    return keyboard
+
+
 async def one_door_card_kb(
         main_menu_id: int = None,
         sub_menu_id: int = None,
@@ -91,8 +103,8 @@ async def one_door_card_kb(
 async def back_main_menu_kb(
         name_button: str = 'Назад',
 ) -> InlineKeyboardMarkup:
-    keyboard: InlineKeyboardMarkup = InlineKeyboardMarkup()
     """Формирование кнопки назад в главное меню"""
+    keyboard: InlineKeyboardMarkup = InlineKeyboardMarkup()
     keyboard.add(InlineKeyboardButton(
         name_button, callback_data=root.new())
     )
@@ -102,12 +114,24 @@ async def back_main_menu_kb(
 async def no_address_kb(
         name_button: str = 'Пропустить ввод адреса',
 ) -> InlineKeyboardMarkup:
-    keyboard: InlineKeyboardMarkup = InlineKeyboardMarkup()
     """Формирование кнопки назад в главное меню"""
+    keyboard: InlineKeyboardMarkup = InlineKeyboardMarkup()
     keyboard.add(InlineKeyboardButton(
         name_button, callback_data='no_address')
     )
     keyboard.add(InlineKeyboardButton(
         'Отмена заявки', callback_data=root.new())
+    )
+    return keyboard
+
+
+async def back_install_door_card_kb(
+        name_button: str = 'Назад',
+        door_card_id: int = None
+) -> InlineKeyboardMarkup:
+    """Формирование кнопки назад в установленные двери"""
+    keyboard: InlineKeyboardMarkup = InlineKeyboardMarkup()
+    keyboard.add(InlineKeyboardButton(
+        name_button, callback_data=door_card.new(d_id=door_card_id, img=True))
     )
     return keyboard
