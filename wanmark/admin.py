@@ -1,11 +1,16 @@
-from django.contrib import admin
+import asyncio
+
+from django.contrib import admin, messages
 from django.shortcuts import redirect, reverse
+from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
+from bot.main_bot import send_newsletter_bot
 from wanmark.forms import SettingsBotAdminForm, InstallDoorCardBotAdminForm
 from wanmark.models import MainMenuBot, SubMenuBot, DoorCardBot, ImageTitleDoorCardBot, ImageInstallDoorCardBot, \
-    SettingsBot, InstallDoorCardBot
+    SettingsBot, InstallDoorCardBot, NewsletterBot, ImageNewsletterBot
+from wanmark.tasks import send_bot
 
 
 class DoorCardBotInline(admin.StackedInline):
@@ -162,3 +167,65 @@ class SettingsBotAdmin(admin.ModelAdmin):
             return mark_safe('<img src="{0}" width="150" height="150" style="object-fit:contain" />'.format(obj.main_image.url))
         else:
             return _('(Нет изображения)')
+
+
+class ImageNewsletterBotInline(admin.TabularInline):
+    model = ImageNewsletterBot
+    fields = ['image', 'image_view']
+    readonly_fields = ['image_view']
+    extra = 0
+    show_change_link = True
+
+    def image_view(self, obj):
+        if obj.image:
+            return mark_safe('<img src="{0}" width="150" height="150" style="object-fit:contain" />'.format(obj.image.url))
+        else:
+            return _('(Нет изображения)')
+
+    image_view.short_description = (_('Предварительный просмотр'))
+
+
+@admin.register(NewsletterBot)
+class NewsletterBotAdmin(admin.ModelAdmin):
+    actions = ['send_newsletter']
+    list_display = ("title", "count_all", 'count_delivered', 'status_view', 'send_date', 'create_date')
+    fields = ["title"]
+    readonly_fields = ["count_all", 'count_delivered', 'status', 'send_date']
+    inlines = [ImageNewsletterBotInline]
+
+    def status_view(self, obj):
+        if obj.status == 0:
+            return mark_safe('<a style="background: #6c757d;padding: 3px 12px;border-radius: 15px;color: #fff">Создана</a>')
+        elif obj.status == 1:
+            return mark_safe('<a style="background: #ffc107;padding: 3px 12px;border-radius: 15px;">Запущена</a>')
+        elif obj.status == 2:
+            return mark_safe('<a style="background: #198754;padding: 3px 12px;border-radius: 15px;color: #fff">Завершена</a>')
+
+    status_view.short_description = (_('Статус отправки'))
+
+    @admin.action(description='Отправить рассылку')
+    def send_newsletter(self, request, queryset):
+        if len(queryset) == 1:
+            if queryset[0].status != 0:
+                self.message_user(request, f"Нельзя отправить рассылку {queryset[0].id}:'{queryset[0].title}' повторно.",
+                                  messages.ERROR)
+                return None
+            nl: NewsletterBot = NewsletterBot.objects.get(id=queryset[0].id)
+            nl.send_date = timezone.now()
+            # nl.status = 1
+            nl.save()
+
+            send_bot.delay(nl.id)
+            # asyncio.run(send_newsletter_bot(nl))
+            # asyncio.run(send(nl))
+            # loop = asyncio.get_event_loop()
+            # asyncio.create_task(send_newsletter_bot(nl))
+            # loop = asyncio.get_event_loop()
+            # loop.create_task(send_newsletter_bot(nl))
+            # await asyncio.gather(loop.create_task(send_newsletter_bot(nl)))
+            self.message_user(request, f"Рассылка запущена.", messages.SUCCESS, )
+        else:
+            self.message_user(request, f"Можно отправить только одну рассылку, а не {len(queryset)}.", messages.ERROR)
+
+
+

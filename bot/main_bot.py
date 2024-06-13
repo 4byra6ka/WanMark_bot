@@ -5,6 +5,7 @@ import telebot
 from django.conf import settings
 from telebot.async_telebot import AsyncTeleBot
 from telebot.asyncio_handler_backends import StatesGroup, State
+from telebot.asyncio_helper import ApiTelegramException
 from telebot.asyncio_storage import StateMemoryStorage
 from telebot.types import Message, CallbackQuery
 
@@ -12,10 +13,11 @@ from bot.filters import main_menu, root, sub_menu, door_card, contact, applicati
 from bot.keyboards import main_menu_kb, sub_menu_kb, door_card_kb, one_door_card_kb, back_main_menu_kb, no_address_kb, \
     install_door_card_kb, back_install_door_card_kb
 from bot.middleware import CustomMiddleware
+from bot.models import BotUser
 from bot.services.db_botuser_dao import update_or_create_menu_actions, get_menu_actions, get_image_title_door, \
     get_description_main_menu, get_contact, get_mail
 from bot.services.send_message import send_mail
-from wanmark.models import MainMenuBot, SubMenuBot, DoorCardBot, InstallDoorCardBot
+from wanmark.models import MainMenuBot, SubMenuBot, DoorCardBot, InstallDoorCardBot, NewsletterBot
 
 bot = AsyncTeleBot(settings.TOKEN_BOT, state_storage=StateMemoryStorage(), parse_mode='HTML')
 logger = telebot.logger
@@ -518,3 +520,27 @@ async def any_del_message(message: Message):
     chat_id = message.chat.id
     logger.info(f'{chat_id} Удалено сообщение по событию "any_del_message"\nТекст: {message.text}')
     await bot.delete_message(chat_id, message.id)
+
+
+async def send_newsletter_bot(nl_id) -> None:
+    """Рассылка новостей"""
+    i_send = 0
+    nl = NewsletterBot.objects.aget(id=nl_id)
+    text = nl.title
+    image = nl.imagenewsletterbot_set.all()
+    all_users_bot = BotUser.objects.all()
+    print(text)
+    for i in range(50):
+        print(i)
+        try:
+            message_tg = await bot.send_message('5895764369', text)
+        except BaseException as err:
+            print(err)
+            await asyncio.sleep(300)
+            message_tg = await bot.send_message('5895764369', text)
+        # print(message_tg)
+        i_send += 1
+        if i_send == 20:
+            await asyncio.sleep(10)
+            i_send = 0
+    pass

@@ -85,7 +85,6 @@ class InstallDoorCardBot(models.Model):
 class ImageInstallDoorCardBot(models.Model):
     """Модель изображения установленных дверей для карточки двери"""
     link_install_door_card = models.ForeignKey("InstallDoorCardBot", on_delete=models.CASCADE, verbose_name='Установленные двери', **NULLABLE)
-    link_door_card = models.ForeignKey("DoorCardBot", on_delete=models.CASCADE, verbose_name='Карточка двери', **NULLABLE)
     image = models.ImageField(upload_to='wanmark/imageinstall', verbose_name='Изображение')
 
     def __str__(self):
@@ -158,3 +157,53 @@ class SettingsBot(models.Model):
 def image_model_delete(sender, instance, **kwargs):
     if instance.main_image.name:
         instance.main_image.delete(False)
+
+
+class NewsletterBot(models.Model):
+    """Модель рассылки новостей через web интерфейс"""
+    title = models.TextField(verbose_name="Описание")
+    count_all = models.PositiveIntegerField(verbose_name='Общее кол-во', **NULLABLE)
+    count_delivered = models.PositiveIntegerField(verbose_name='Доставленное кол-во', **NULLABLE)
+    status = models.PositiveIntegerField(verbose_name='Статус отправки', default=0, **NULLABLE)
+    send_date = models.DateTimeField(verbose_name='Дата рассылки', **NULLABLE)
+    create_date = models.DateTimeField(verbose_name='Дата создания', auto_now_add=True)
+
+    def __str__(self):
+        return f'Рассылка новости: {self.id}'
+
+    class Meta:
+        verbose_name = 'рассылка новости'
+        verbose_name_plural = 'Рассылки новостей'
+        ordering = ["-id"]
+
+
+class ImageNewsletterBot(models.Model):
+    """Модель изображения для рассылки новостей"""
+    link_newsletter = models.ForeignKey("NewsletterBot", on_delete=models.CASCADE, verbose_name='Рассылка новостей')
+    image = models.ImageField(upload_to='wanmark/imagenewsletter', verbose_name='Изображение')
+
+    def __str__(self):
+        return f'{self.id} Изображение рассылки новостей: {self.link_newsletter}'
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        if self.image:
+            with Image.open(self.image.path) as img:
+                img.load()
+
+            if img.height > 1080 or img.width > 1920:
+                new_height = 720
+                new_width = int(new_height / img.height * img.width)
+                img = img.resize((new_width, new_height))
+                img.save(self.image.path)
+
+    class Meta:
+        verbose_name = 'Изображение рассылки новостей'
+        verbose_name_plural = 'Изображения рассылки новостей'
+
+
+@receiver(pre_delete, sender=ImageNewsletterBot)
+def image_model_delete(sender, instance, **kwargs):
+    if instance.image.name:
+        instance.image.delete(False)

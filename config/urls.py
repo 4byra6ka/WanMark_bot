@@ -35,6 +35,7 @@ def get_app_list(self, request, app_label=None):
                 'SubMenuBot': 3,
                 'DoorCardBot': 4,
                 'InstallDoorCardBot': 5,
+                'NewsletterBot': 6,
             }
             app['models'].sort(key=lambda x: ordering[x['object_name']])
 
