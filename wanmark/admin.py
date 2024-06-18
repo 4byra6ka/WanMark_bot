@@ -7,6 +7,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
 from bot.main_bot import send_newsletter_bot
+from bot.models import BotUser
 from wanmark.forms import SettingsBotAdminForm, InstallDoorCardBotAdminForm
 from wanmark.models import MainMenuBot, SubMenuBot, DoorCardBot, ImageTitleDoorCardBot, ImageInstallDoorCardBot, \
     SettingsBot, InstallDoorCardBot, NewsletterBot, ImageNewsletterBot
@@ -212,17 +213,11 @@ class NewsletterBotAdmin(admin.ModelAdmin):
                 return None
             nl: NewsletterBot = NewsletterBot.objects.get(id=queryset[0].id)
             nl.send_date = timezone.now()
-            # nl.status = 1
+            nl.count_all = len(BotUser.objects.filter(status_active=True))
+            nl.status = 1
             nl.save()
 
             send_bot.delay(nl.id)
-            # asyncio.run(send_newsletter_bot(nl))
-            # asyncio.run(send(nl))
-            # loop = asyncio.get_event_loop()
-            # asyncio.create_task(send_newsletter_bot(nl))
-            # loop = asyncio.get_event_loop()
-            # loop.create_task(send_newsletter_bot(nl))
-            # await asyncio.gather(loop.create_task(send_newsletter_bot(nl)))
             self.message_user(request, f"Рассылка запущена.", messages.SUCCESS, )
         else:
             self.message_user(request, f"Можно отправить только одну рассылку, а не {len(queryset)}.", messages.ERROR)

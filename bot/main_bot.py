@@ -522,25 +522,32 @@ async def any_del_message(message: Message):
     await bot.delete_message(chat_id, message.id)
 
 
-async def send_newsletter_bot(nl_id) -> None:
+async def send_newsletter_bot(nl) -> None:
     """Рассылка новостей"""
     i_send = 0
-    nl = NewsletterBot.objects.aget(id=nl_id)
     text = nl.title
-    image = nl.imagenewsletterbot_set.all()
-    all_users_bot = BotUser.objects.all()
-    print(text)
-    for i in range(50):
-        print(i)
+    list_list_image = await get_image_title_door(newsletter=nl)
+    async for user in BotUser.objects.filter(status_active=True):
         try:
-            message_tg = await bot.send_message('5895764369', text)
-        except BaseException as err:
-            print(err)
-            await asyncio.sleep(300)
-            message_tg = await bot.send_message('5895764369', text)
-        # print(message_tg)
-        i_send += 1
-        if i_send == 20:
-            await asyncio.sleep(10)
-            i_send = 0
-    pass
+            for list_image in list_list_image:
+                if len(list_image) > 1 and len(list_image) == 10 and len(list_list_image) > 1:
+                    await bot.send_media_group(user.telegram_id, list_image)
+                elif len(list_image) > 1 and len(list_image) == 10 and len(list_list_image) == 1:
+                    await bot.send_media_group(user.telegram_id, list_image)
+                elif len(list_image) > 1:
+                    await bot.send_media_group(user.telegram_id, list_image)
+                elif len(list_image) == 1:
+                    await bot.send_photo(user.telegram_id, list_image[0].media)
+            await bot.send_message(user.telegram_id, text)
+            i_send += 1
+        except ApiTelegramException as err:
+            if err.error_code in [400, 403]:
+                user_tg: BotUser = await BotUser.objects.aget(telegram_id=user.telegram_id)
+                user_tg.status_active = False
+                await user_tg.asave()
+            else:
+                print(err.error_code)
+                print(err.description)
+    nl.status = 2
+    nl.count_delivered = i_send
+    await nl.asave()

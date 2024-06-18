@@ -2,7 +2,8 @@ import telebot
 from telebot.types import Chat, User, InputMediaPhoto
 
 from bot.models import BotUser, MenuActions
-from wanmark.models import DoorCardBot, ImageTitleDoorCardBot, SettingsBot, ImageInstallDoorCardBot, InstallDoorCardBot
+from wanmark.models import DoorCardBot, ImageTitleDoorCardBot, SettingsBot, ImageInstallDoorCardBot, InstallDoorCardBot, \
+    ImageNewsletterBot, NewsletterBot
 
 logger = telebot.logger
 
@@ -94,7 +95,8 @@ async def get_menu_actions(telegram_id: int):
 
 async def get_image_title_door(
         door_card: DoorCardBot = None,
-        install_door_card: InstallDoorCardBot = None
+        install_door_card: InstallDoorCardBot = None,
+        newsletter: NewsletterBot = None
 ) -> list:
     list_list_image = []
     list_image = []
@@ -109,6 +111,14 @@ async def get_image_title_door(
     if install_door_card:
         async for door_card_install_image in ImageInstallDoorCardBot.objects.filter(link_install_door_card=install_door_card):
             list_image.append(InputMediaPhoto(door_card_install_image.image.read()))
+            if len(list_image) == 10:
+                list_list_image.append(list_image)
+                list_image = []
+        else:
+            list_list_image.append(list_image)
+    if newsletter:
+        async for newsletter_image in ImageNewsletterBot.objects.filter(link_newsletter=newsletter):
+            list_image.append(InputMediaPhoto(newsletter_image.image.read()))
             if len(list_image) == 10:
                 list_list_image.append(list_image)
                 list_image = []

@@ -182,7 +182,7 @@ LOGGING = {
     # },
 }
 
-CSRF_TRUSTED_ORIGINS = ['https://vpn.1jz.ru']
+CSRF_TRUSTED_ORIGINS = ['https://wanmark.1jz.ru']
 
 CELERY_BROKER_URL = 'redis://10.77.232.192:6379'
 CELERY_RESULT_BACKEND = 'redis://10.77.232.192:6379'
