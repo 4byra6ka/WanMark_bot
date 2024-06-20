@@ -1,0 +1,64 @@
+version: "3.8"
+
+services:
+  wanmark_bot:
+    restart: always
+    build:
+      context: .
+      dockerfile: wanmark_bot.Dockerfile
+    container_name: wanmark_bot
+    volumes:
+      - ./:/app/
+    expose:
+      - 8000
+    depends_on:
+      - wanmark_db
+      - wanmark_web
+      - wanmark_redis
+    env_file:
+      - ./.env.dev
+  wanmark_web:
+    restart: always
+    build:
+      context: .
+      dockerfile: wanmark_web.Dockerfile
+    container_name: wanmark_web
+    volumes:
+      - ./:/app/
+    expose:
+      - 8000
+    depends_on:
+      - wanmark_db
+      - wanmark_redis
+    env_file:
+      - ./.env.dev
+  wanmark_db:
+    restart: always
+    image: postgres:15-alpine
+    container_name: wanmark_db
+    volumes:
+      - ./data/postgres_data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: wanmark_db
+    ports:
+      - 5432
+  wanmark_redis:
+    image: redis:7.0.5-alpine
+    container_name: wanmark_redis
+    expose:
+      - 6379
+  wanmark_celery:
+    restart: always
+    build:
+      context: .
+      dockerfile: wanmark_celery.Dockerfile
+    container_name: wanmark_celery
+    volumes:
+      - ./:/app/
+    depends_on:
+      - wanmark_web
+      - wanmark_redis
+    env_file:
+      - ./.env.dev
