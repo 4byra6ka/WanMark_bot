@@ -8,7 +8,8 @@ services:
       dockerfile: wanmark_bot.Dockerfile
     container_name: wanmark_bot
     volumes:
-      - ./:/app/
+      - ./static:/app/static
+      - ./media:/app/media
     expose:
       - 8000
     depends_on:
@@ -17,6 +18,8 @@ services:
       - wanmark_redis
     env_file:
       - ./.env.dev
+    networks:
+      - testnet
   wanmark_web:
     restart: always
     build:
@@ -24,7 +27,8 @@ services:
       dockerfile: wanmark_web.Dockerfile
     container_name: wanmark_web
     volumes:
-      - ./:/app/
+      - ./static:/app/static
+      - ./media:/app/media
     expose:
       - 8000
     depends_on:
@@ -32,23 +36,29 @@ services:
       - wanmark_redis
     env_file:
       - ./.env.dev
+    networks:
+      - testnet
   wanmark_db:
     restart: always
     image: postgres:15-alpine
     container_name: wanmark_db
     volumes:
-      - ./data/postgres_data:/var/lib/postgresql/data/
+      - ./postgres_data:/var/lib/postgresql/data/
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: wanmark_db
     ports:
       - 5432
+    networks:
+      - testnet
   wanmark_redis:
     image: redis:7.0.5-alpine
     container_name: wanmark_redis
     expose:
       - 6379
+    networks:
+      - testnet
   wanmark_celery:
     restart: always
     build:
@@ -56,9 +66,15 @@ services:
       dockerfile: wanmark_celery.Dockerfile
     container_name: wanmark_celery
     volumes:
-      - ./:/app/
+      - ./static:/app/static
+      - ./media:/app/media
     depends_on:
       - wanmark_web
       - wanmark_redis
     env_file:
       - ./.env.dev
+    networks:
+      - testnet
+networks:
+  testnet:
+    external: true
