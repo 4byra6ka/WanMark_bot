@@ -17,7 +17,7 @@ from bot.models import BotUser
 from bot.services.db_botuser_dao import update_or_create_menu_actions, get_menu_actions, get_image_title_door, \
     get_description_main_menu, get_contact, get_mail
 from bot.services.send_message import send_mail
-from wanmark.models import MainMenuBot, SubMenuBot, DoorCardBot, InstallDoorCardBot, NewsletterBot
+from wanmark.models import MainMenuBot, SubMenuBot, DoorCardBot, InstallDoorCardBot
 
 bot = AsyncTeleBot(settings.TOKEN_BOT, state_storage=StateMemoryStorage(), parse_mode='HTML')
 logger = telebot.logger
@@ -151,7 +151,6 @@ async def handle_install_door_menu(call: CallbackQuery):
         reply_markup=await install_door_card_kb(door_card_id=door_card_data.id)
     )
     await update_or_create_menu_actions(call.message.chat.id, message_id=message_tg.message_id)
-    pass
 
 
 @bot.callback_query_handler(func=None, door_card_config=door_card.filter())

@@ -221,6 +221,3 @@ class NewsletterBotAdmin(admin.ModelAdmin):
             self.message_user(request, f"Рассылка запущена.", messages.SUCCESS, )
         else:
             self.message_user(request, f"Можно отправить только одну рассылку, а не {len(queryset)}.", messages.ERROR)
-
-
-

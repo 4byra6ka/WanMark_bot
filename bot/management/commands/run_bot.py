@@ -15,8 +15,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         try:
-            # bind_filters(bot)
-            # asyncio.run(bot.infinity_polling(logger_level=settings.LOG_LEVEL, allowed_updates=util.update_types))
             asyncio.run(run_bot())
         except Exception as err:
             logger.error(f'Ошибка: {err}')
@@ -24,8 +22,6 @@ class Command(BaseCommand):
 
 async def run_bot():
     bind_filters(bot)
-    # await bot.delete_my_commands(scope=None, language_code=None)
-
     await bot.set_my_commands(
         commands=[
             telebot.types.BotCommand("start", "Главное меню")

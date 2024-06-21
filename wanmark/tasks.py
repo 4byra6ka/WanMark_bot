@@ -8,5 +8,6 @@ from wanmark.models import NewsletterBot
 
 @shared_task
 def send_bot(nl_id):
+    """Отправка рассылки новостей"""
     nl: NewsletterBot = NewsletterBot.objects.get(id=nl_id)
     asyncio.run(send_newsletter_bot(nl))

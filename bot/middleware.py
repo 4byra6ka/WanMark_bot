@@ -30,10 +30,10 @@ class CustomMiddleware(BaseMiddleware, ABC):
         create_status = await update_or_create_tg_user(my_date)
 
     async def post_process_message(self, message, data, exception):
-        pass # only message update here for post_process
+        pass  # only message update here for post_process
 
     async def pre_process_edited_message(self, message, data):
-        pass # only edited_message update here
+        pass  # only edited_message update here
 
     async def post_process_edited_message(self, message, data, exception):
-        pass # only edited_message update here for post_process
+        pass  # only edited_message update here for post_process
